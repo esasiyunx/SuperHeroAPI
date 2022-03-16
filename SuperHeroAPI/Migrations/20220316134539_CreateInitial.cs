@@ -9,7 +9,7 @@ namespace SuperHeroAPI.Migrations
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                schema:"HERO",
+                schema: "HERO",
                 name: "SuperHeroes",
                 columns: table => new
                 {

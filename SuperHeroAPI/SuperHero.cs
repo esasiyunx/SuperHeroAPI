@@ -1,5 +1,8 @@
-﻿namespace SuperHeroAPI
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace SuperHeroAPI
 {
+    [Table("SuperHeroes", Schema = "HERO")]
     public class SuperHero
     {
         public int Id { get; set; }
