@@ -1,32 +1,42 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using System.Linq;
 
 namespace SuperHeroAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    [Authorize(Roles ="User")]
+    //[Authorize(Roles ="User")]
     public class SuperHeroController : ControllerBase
     {
         private readonly DataContext _context;
-        public SuperHeroController(DataContext context)
+        private readonly IMemoryCache _memoryCache;
+        public SuperHeroController(DataContext context, IMemoryCache memoryCache)
         {
+            _memoryCache = memoryCache;
             _context = context;
         }
 
-        [HttpGet("GetSuperHero"), Authorize(Roles = "Admin")]
+        [HttpGet("GetSuperHero")]
         public async Task<ActionResult<List<SuperHero>>> GetSuperHero()
         {
-            var getList = await _context.SuperHeroes.ToListAsync();
+            var Getlist = await _memoryCache.GetOrCreateAsync("GetSuperHero", async cacheEntry =>
+             {
+                 return await _context.SuperHeroes.ToListAsync();
+             });
 
-            return Ok(getList);
+
+            return Ok(Getlist);
         }
 
         [HttpGet("GetSuperHeroById/{id}")]
         public async Task<ActionResult<SuperHero>> GetSuperHeroById(int id)
         {
-            var getHero = _context.SuperHeroes.Where(x=> x.Id == id).FirstOrDefault();
+            var getHero = await _memoryCache.GetOrCreateAsync("GetSuperHeroById", async cacheEntry =>
+            {
+                return await _context.SuperHeroes.Where(x => x.Id == id).FirstOrDefaultAsync();
+            });
 
             if (getHero == null)
                 return BadRequest("Can't find Hero");
@@ -40,7 +50,10 @@ namespace SuperHeroAPI.Controllers
 
             var getChars = idList.Split(',').ToList();
 
-            var getHero = await _context.SuperHeroes.Where(x => getChars.Contains(x.Id.ToString())).ToListAsync();
+            var getHero = await _memoryCache.GetOrCreateAsync("GetSuperHeroByIdList", async cacheEntry =>
+            {
+                return await _context.SuperHeroes.Where(x => getChars.Contains(x.Id.ToString())).FirstOrDefaultAsync();
+            });
 
             if (getHero == null)
                 return BadRequest("Can't find Hero");
@@ -60,7 +73,7 @@ namespace SuperHeroAPI.Controllers
         [HttpPut("UpdateSuperHero")]
         public async Task<ActionResult<List<SuperHero>>> UpdateSuperHero(SuperHero hero)
         {
-            var getHero = _context.SuperHeroes.Where(x => x.Id == hero.Id).FirstOrDefault();
+            var getHero = await _context.SuperHeroes.Where(x => x.Id == hero.Id).FirstOrDefaultAsync();
 
             if (getHero == null)
                 return BadRequest("Can't find Hero");
@@ -79,7 +92,7 @@ namespace SuperHeroAPI.Controllers
         [HttpDelete("DeleteSuperHero")]
         public async Task<ActionResult<List<SuperHero>>> DeleteSuperHero(int id)
         {
-            var getHero =  _context.SuperHeroes.Where(x=> x.Id == id).FirstOrDefault();
+            var getHero = _context.SuperHeroes.Where(x => x.Id == id).FirstOrDefault();
 
             if (getHero == null)
                 return BadRequest("Can't find Hero");
@@ -88,7 +101,7 @@ namespace SuperHeroAPI.Controllers
 
             await _context.SaveChangesAsync();
 
-            return Ok(await _context.SuperHeroes.ToListAsync());
+            return Ok(await _context.SuperHeroes.ToListAsync(););
         }
 
     }

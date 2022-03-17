@@ -25,7 +25,7 @@ namespace SuperHeroAPI.Controllers
         {
             CreatePasswordHash(request.Password, out byte[] passwordHash, out byte[] passwordSalt);
 
-            var checkUser = _context.User.Where(x => x.UserName == request.UserName).FirstOrDefaultAsync();
+            var checkUser = await _context.User.Where(x => x.UserName == request.UserName).FirstOrDefaultAsync();
 
             if (checkUser != null)
                 return BadRequest("this user exists");
