@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Linq;
 
 namespace SuperHeroAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize(Roles ="User")]
     public class SuperHeroController : ControllerBase
     {
         private readonly DataContext _context;
@@ -13,7 +15,7 @@ namespace SuperHeroAPI.Controllers
             _context = context;
         }
 
-        [HttpGet]
+        [HttpGet("GetSuperHero"), Authorize(Roles = "Admin")]
         public async Task<ActionResult<List<SuperHero>>> GetSuperHero()
         {
             var getList = await _context.SuperHeroes.ToListAsync();
@@ -46,16 +48,16 @@ namespace SuperHeroAPI.Controllers
             return Ok(getHero);
         }
 
-        [HttpPost]
+        [HttpPost("AddSuperHero")]
         public async Task<ActionResult<List<SuperHero>>> AddSuperHero(SuperHero hero)
         {
             _context.SuperHeroes.Add(hero);
             await _context.SaveChangesAsync();
 
-            return Ok(_context.SuperHeroes.ToListAsync());
+            return Ok(await _context.SuperHeroes.ToListAsync());
         }
 
-        [HttpPut]
+        [HttpPut("UpdateSuperHero")]
         public async Task<ActionResult<List<SuperHero>>> UpdateSuperHero(SuperHero hero)
         {
             var getHero = _context.SuperHeroes.Where(x => x.Id == hero.Id).FirstOrDefault();
@@ -74,7 +76,7 @@ namespace SuperHeroAPI.Controllers
             return Ok(await _context.SuperHeroes.ToListAsync());
         }
 
-        [HttpDelete]
+        [HttpDelete("DeleteSuperHero")]
         public async Task<ActionResult<List<SuperHero>>> DeleteSuperHero(int id)
         {
             var getHero =  _context.SuperHeroes.Where(x=> x.Id == id).FirstOrDefault();
